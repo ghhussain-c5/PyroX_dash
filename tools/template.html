@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#080b18">
+<meta name="description" content="Explore combustion research, compare documented conditions, and inspect the evidence behind each finding.">
+<title>PyroX · Combustion research</title>
+<style>/*__STYLES__*/</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to research</a>
+<header class="topbar">
+  <div class="identity"><img src="__LOGO__" alt="PyroX — Flame Beyond Earth" width="87" height="79"><div><strong>Combustion research</strong><span>NASA Space Apps · Team PyroX</span></div></div>
+  <nav aria-label="Main navigation"><button class="nav active" data-view="research" aria-current="page">Research</button><button class="nav" data-view="compare">Compare <span id="compareCount" class="count">2</span></button><button class="nav" data-view="sources">Sources</button><button class="nav" data-view="ask">Ask a question</button></nav>
+  <button class="quiet connection-button" id="connectTop"><span class="dot" id="connectionDot"></span><span id="connectionText">Connect assistant</span></button>
+</header>
+<main id="main">
+  <section id="view-research" class="view">
+    <div class="page-heading"><div><p class="eyebrow">The research collection</p><h1>Find relevant experiments.</h1><p class="subhead">Set your conditions. Compare the evidence and the gaps.</p></div><button class="quiet" id="exportShortlist">Export shortlist ↓</button></div>
+    <div class="stats" id="stats"></div>
+    <div class="research-layout">
+      <aside class="filter-panel panel">
+        <div class="section-top"><h2>Your scenario</h2><button class="text-button" id="resetScenario">Reset</button></div>
+        <form id="scenarioForm">
+          <label>Starting point<select id="mission"></select></label>
+          <p class="help" id="missionNote"></p>
+          <label>Research question<select id="goal"></select></label>
+          <label>Fuel phase<select id="fuel"><option>Any</option><option>Solid</option><option>Liquid</option><option>Gas</option><option>Aerosol</option></select></label>
+          <label>Gravity<select id="gravity"><option>Microgravity</option><option>Earth gravity</option><option>Lunar gravity</option><option>Mars gravity</option><option>Other / unspecified</option></select></label>
+          <div class="field-pair"><label>Oxygen <span>vol%</span><input id="oxygen" type="number" min="0" max="100" step="0.1" value="21" required></label><label>Pressure <span>psia</span><input id="pressure" type="number" min="0.01" max="100" step="0.01" value="14.7" required></label></div>
+          <label>Airflow <span>cm/s · optional</span><input id="flow" type="number" min="0" max="10000" step="0.1" placeholder="Not specified"></label>
+          <button type="submit" class="primary wide">Update results</button>
+        </form>
+        <p id="scenarioStatus" class="help" aria-live="polite"></p>
+        <div class="scenario-value"><span>Calculated oxygen partial pressure</span><strong id="partialPressure">3.09 <small>psia</small></strong><p class="help">Oxygen fraction × absolute pressure. This alone does not establish flammability.</p></div>
+        <details class="method"><summary>How relevance is calculated</summary><p>Objective: 35 points. Fuel phase: 20 when selected. Oxygen: 20. Pressure: 10. Source availability: 15. Planned ranges receive partial credit. Unknown conditions receive no credit.</p><p>Scores are normalized to 100. They rank research usefulness, not fire risk or safety. Gravity differences appear as evidence gaps.</p></details>
+      </aside>
+      <div class="results-area">
+        <div class="results-toolbar"><label class="search-label"><span class="sr-only">Search investigations</span><input type="search" id="researchSearch" placeholder="Search materials, investigations, hardware…"></label><label class="checkbox"><input id="reportsOnly" type="checkbox"> With source text</label></div>
+        <div class="list-heading"><span id="resultCount" aria-live="polite"></span><span>Sorted by relevance</span></div>
+        <div class="cards" id="researchCards"></div>
+        <div class="pagination"><button class="quiet" id="showMore">Show more investigations</button></div>
+        <p class="footnote">A matching range does not confirm that fuel, gravity, oxygen, pressure and airflow were tested together.</p>
+      </div>
+    </div>
+  </section>
+  <section id="view-compare" class="view" hidden>
+    <div class="page-heading"><div><p class="eyebrow">Conditions & measurements</p><h1>Compare with the evidence.</h1><p class="subhead">Your inputs are reference markers. Research measurements remain separate.</p></div><button class="quiet" id="downloadGraph">Download graph ↓</button></div>
+    <div class="scenario-strip" id="compareScenario"></div>
+    <div class="panel chart-panel">
+      <div class="chart-controls"><label>Dataset<select id="plotDataset"><option value="oxygen">Documented oxygen ranges</option><option value="spread">BASS-II · Flame spread · Table 5.1</option><option value="extinction">BASS-II · Extinction · Table 2.1</option><option value="wire">SAME · Wire calibration workbook</option><option value="import">Your imported measurements</option></select></label><label id="thicknessLabel">Slab thickness<select id="thickness"><option value="all">All thicknesses</option><option value="1">1 mm</option><option value="2">2 mm</option><option value="3">3 mm</option><option value="4">4 mm</option><option value="5">5 mm</option></select></label><label id="sideLabel">Burning sides<select id="sides"><option value="all">Both configurations</option><option value="1">One side</option><option value="2">Two sides</option></select></label><label id="sheetLabel">Workbook sheet<select id="wireSheet"></select></label><label id="xLabel">Horizontal axis<select id="xAxis"></select></label><label id="yLabel">Vertical axis<select id="yAxis"></select></label></div>
+      <div id="plot" class="plot"></div><p id="plotCaption" class="chart-caption"></p>
+      <div class="section-top"><span class="help" id="plotRows"></span><button class="text-button" id="exportPlot">Export plotted values ↓</button></div>
+      <details class="data-details"><summary>View underlying values</summary><div id="plotTable" class="table-scroll"></div></details>
+    </div>
+    <div class="two-col lower-panels"><div class="panel pad"><h2>Investigation comparison</h2><p class="help">Select up to three cards in Research to compare their methods.</p><div id="studyComparison" class="table-scroll"></div></div><div class="panel pad"><h2>Add measurement rows</h2><p class="help">Import a CSV or JSON array. Include <code>oxygen_pct</code> and <code>spread_mm_s</code> or <code>flow_cm_s</code> and <code>spread_mm_s</code>. Rows remain in this browser session.</p><label class="file-button quiet">Choose measurement file<input type="file" id="measurementFile" accept=".csv,.json"></label><p id="importStatus" class="help" aria-live="polite">Imported values are labeled as user data and are not sent to Groq.</p><button class="text-button" id="sampleCSV">Download CSV template</button></div></div>
+  </section>
+  <section id="view-sources" class="view" hidden>
+    <div class="page-heading"><div><p class="eyebrow">The source library</p><h1>Read the original extracts.</h1><p class="subhead">Every report page and workbook row from your team’s file, in one place.</p></div><button class="quiet" id="exportData">Download all data ↓</button></div>
+    <div class="source-search panel pad"><label>Search all source text<input type="search" id="sourceSearch" placeholder="e.g. limiting oxygen, PMMA, detector, methanol"></label><div id="sourceHits"></div></div>
+    <div class="source-layout"><aside class="panel source-list" id="sourceList"></aside><article class="panel source-content"><div class="section-top"><div><h2 id="sourceTitle"></h2><p id="sourceMeta" class="help"></p></div><button class="quiet" id="downloadSource">Download JSON ↓</button></div><div class="source-controls"><button class="quiet" id="previousPage">← Previous</button><label id="pageLabel">PDF page<input type="number" id="sourcePage" min="1" value="1"></label><label id="sourceSheetLabel">Sheet<select id="sourceSheet"></select></label><button class="quiet" id="nextPage">Next →</button></div><p id="sourceNote" class="notice"></p><div id="sourceContent"></div></article></div>
+    <details class="panel pad source-watch"><summary>Additional research leads from the original catalog</summary><div id="watchlist"></div><p class="help">These are preserved leads, not a live status feed. Open each source to verify current availability.</p></details>
+  </section>
+  <section id="view-ask" class="view" hidden>
+    <div class="page-heading"><div><p class="eyebrow">Research assistance</p><h1>Ask about the research.</h1><p class="subhead">Answers use retrieved source passages and your current scenario.</p></div><button class="quiet" id="openConnection">Connection settings</button></div>
+    <div class="ask-layout"><div><div class="panel pad"><div class="scenario-strip compact" id="askScenario"></div><form id="askForm"><label>Question<textarea id="question" rows="4" maxlength="2000" placeholder="What does BASS-II tell us about PMMA flame spread, and which conditions are missing?" required></textarea></label><label>Source scope<select id="askScope"><option value="">All bundled sources</option></select></label><div class="ask-actions"><span id="askState" class="help" aria-live="polite">Connect the backend to generate an answer.</span><button type="submit" class="primary" id="askButton">Ask question →</button></div></form></div><div class="suggestions"><button data-question="What does BASS-II report about PMMA flame spread and oxygen concentration?">PMMA flame spread</button><button data-question="What are the limitations of applying SAME smoke-detection results to a lunar habitat?">Smoke detection gaps</button><button data-question="Which FLEX conditions are planned rather than measured?">FLEX test conditions</button></div><article id="answer" class="panel pad answer" hidden aria-live="polite"></article></div><aside class="panel pad ask-notes"><h2>What is available</h2><p>The assistant searches the bundled report extracts and workbook rows before asking Groq to interpret the relevant passages.</p><p>Generated answers include source links and missing evidence. Check the cited text before relying on an interpretation.</p><div class="rule"></div><h3>When disconnected</h3><p>Research ranking, graphs, document search and exports still work. No generated answer is shown.</p><div class="rule"></div><h3>Your information</h3><p>Your question, scenario and selected source excerpts go to Groq through the configured backend. The Groq key stays on the server.</p></aside></div>
+  </section>
+  <footer><span>PyroX · Flame beyond Earth</span><span>Research support · Not a fire-safety certification</span></footer>
+</main>
+<dialog id="studyDialog"><div class="dialog-heading"><h2 id="studyTitle"></h2><button class="quiet" data-close="studyDialog" aria-label="Close investigation details">Close ×</button></div><div id="studyDetail"></div></dialog>
+<dialog id="connectionDialog"><div class="dialog-heading"><h2>Connect the research assistant</h2><button class="quiet" data-close="connectionDialog" aria-label="Close connection settings">Close ×</button></div><p class="help">Use your deployed backend URL and team access code. Do not enter a Groq API key here.</p><form id="connectionForm"><label>Backend URL<input id="backendURL" type="url" placeholder="https://your-pyrox-api.onrender.com" required></label><label>Team access code<input id="accessCode" type="password" autocomplete="off" placeholder="Provided by your backend owner" minlength="16"></label><p class="help">The URL is saved on this device. The access code is kept only until you reload or disconnect.</p><div class="ask-actions"><button type="button" class="quiet" id="disconnect">Disconnect</button><button type="submit" class="primary" id="testConnection">Check connection</button></div></form><p id="connectionStatus" class="help" aria-live="polite"></p><details class="method"><summary>Where do I get these?</summary><p>Follow START_HERE.md in the download package. Deploy the backend on Render, set GROQ_API_KEY and APP_ACCESS_TOKEN there, then copy its public URL into this field.</p></details></dialog>
+<div id="toast" class="toast" role="status" hidden></div>
+<noscript>This dashboard needs JavaScript to search the included research data.</noscript>
+<script id="pyrox-data" type="application/json">__DATA__</script>
+<script>/*__CORE__*/</script>
+<script>/*__APP__*/</script>
+</body>
+</html>
